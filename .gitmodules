@@ -1,0 +1,18 @@
+[submodule "submodules/tree-ring-watermark"]
+	path = submodules/tree-ring-watermark
+	url = https://github.com/YuxinWenRick/tree-ring-watermark.git
+[submodule "submodules/METR"]
+	path = submodules/METR
+	url = https://github.com/deepvk/metr.git
+[submodule "submodules/GaussianShading"]
+	path = submodules/GaussianShading
+	url = https://github.com/bsmhmmlf/Gaussian-Shading.git
+[submodule "submodules/RingID"]
+	path = submodules/RingID
+	url = https://github.com/showlab/RingID.git
+[submodule "submodules/MaXsive"]
+	path = submodules/MaXsive
+	url = https://github.com/Mao718/MaXsive.git
+[submodule "submodules/stable_signature"]
+	path = submodules/stable_signature
+	url = https://github.com/Powss/stable_signature.git

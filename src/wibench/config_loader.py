@@ -1,0 +1,126 @@
+import yaml
+import re
+from pathlib import Path
+from typing import Union, List, Dict, Any
+from wibench.config import PipeLineConfig
+from jinja2 import Environment, FileSystemLoader
+
+
+loader = yaml.SafeLoader
+loader.add_implicit_resolver(
+    u'tag:yaml.org,2002:float',
+    re.compile(u'''^(?:
+     [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+    |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+    |\\.[0-9_]+(?:[eE][-+][0-9]+)?
+    |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
+    |[-+]?\\.(?:inf|Inf|INF)
+    |\\.(?:nan|NaN|NAN))$''', re.X),
+    list(u'-+0123456789.'))
+
+
+ALGORITHMS_FIELD = "algorithms"
+POST_EMBED_METRICS_FIELD = "post_embed_metrics"
+POST_ATTACK_METRICS_FIELD = "post_attack_metrics"
+POST_EXTRACT_METRICS_FIELD = "post_extract_metrics"
+POST_PIPELINE_EMBED_METRICS_FIELD = "post_pipeline_embed_metrics"
+POST_PIPELINE_ATTACK_METRICS_FIELD = "post_pipeline_attack_metrics"
+METRICS_FIELDS = [POST_EMBED_METRICS_FIELD,
+                 POST_ATTACK_METRICS_FIELD,
+                 POST_EXTRACT_METRICS_FIELD,
+                 POST_PIPELINE_EMBED_METRICS_FIELD,
+                 POST_PIPELINE_ATTACK_METRICS_FIELD]
+METRICS_FIELD = "metrics"
+DATASETS_FIELD = "datasets"
+ATTACKS_FIELD = "attacks"
+PIPELINE_FIELD = "pipeline"
+
+
+
+def validate_and_parse_yaml_config(config: Any) -> Dict[str, Any]:
+    result = {}
+    assert isinstance(config, Dict), "Config is not a dictionary"
+    for field in [
+        ALGORITHMS_FIELD,
+        DATASETS_FIELD,
+        ATTACKS_FIELD,
+        PIPELINE_FIELD,
+    ] + METRICS_FIELDS:
+        if field not in config:
+            field_value = {}
+        else:
+            field_value = config[field]
+        if field == PIPELINE_FIELD:
+            result[field] = PipeLineConfig(**field_value)
+            continue
+
+        field_result = []
+        result[field] = field_result
+
+        if isinstance(field_value, List):
+            for single_obj in field_value:
+                if isinstance(single_obj, Dict):
+                    assert (
+                        len(single_obj.keys()) == 1
+                    ), f"Error parsing '{field_value}'"
+                    field_result.append(list(single_obj.items())[0])
+                elif isinstance(single_obj, str):
+                    field_result.append((single_obj, None))
+                else:
+                    raise TypeError(
+                        f"Unknown type '{type(single_obj)}' for field '{field}'"
+                    )
+
+        elif isinstance(field_value, Dict):
+            field_result.extend(field_value.items())
+
+        elif isinstance(field_value, str):
+            field_result.append((field_value, None))
+
+        else:
+            raise TypeError(
+                f"Unknown type '{type(field_value)}' for field '{field}'"
+            )
+    return result
+
+
+def render_jinja2_config(config_path: Path):
+    templates_dir = config_path.parent
+    env = Environment(loader=FileSystemLoader(templates_dir), autoescape=False)
+    template = env.get_template(config_path.name)
+    return template.render()
+
+
+def load_pipeline_config_yaml(config_path: Union[str, Path]) -> Dict[str, Any]:
+    """Load and validate pipeline configuration from YAML file. Supports jinja2 templates for file inclusion.
+
+    Parameters
+    ----------
+    config_path : Union[str, Path]
+        Path to YAML configuration file
+
+    Returns
+    -------
+    Dict[str, Any]
+        Parsed configuration dictionary with keys:
+        - 'algorithms': watermarking algorithm configurations
+        - 'datasets': dataset configurations  
+        - 'attacks': attack configurations
+        - 'post_embed_metrics': metric after watermark embedding configurations
+        - 'post_attack_metrics': metrics after applying attacks configurations
+        - 'post_extract_metrics': metrics after watermark extraction configurations
+        - 'pipeline': Pipeline configuration
+
+    Raises
+    ------
+    FileNotFoundError
+        If config file doesn't exist
+    ValueError
+        If config is invalid or missing required fields
+    """
+    config_path = Path(config_path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"File: {config_path} not found")
+    rendered = render_jinja2_config(Path(config_path))
+    yaml_cfg = yaml.load(rendered, Loader=loader)
+    return validate_and_parse_yaml_config(yaml_cfg)

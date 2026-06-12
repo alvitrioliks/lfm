@@ -1,0 +1,153 @@
+from pydantic import (
+    BaseModel,
+    Field,
+    model_validator
+)
+from typing_extensions import (
+    Union,
+    List,
+    Literal,
+    Annotated,
+    Optional
+)
+from pathlib import Path
+from dataclasses import dataclass
+from enum import Enum
+
+import torch
+
+
+class DumpType(str, Enum):
+    """Enumeration of supported context serialization formats.
+    
+    Attributes
+    ----------
+    pickle : str
+        Use Python pickle serialization (more space and less portable)
+    serialized : str
+        Use custom JSON + binary file serialization (less space and more portable)
+    """
+
+    pickle = "pickle"
+    serialized = "serialized"
+
+
+class StageType(str, Enum):
+    embed = "embed"
+    post_embed_metrics = "post_embed_metrics"
+    attack = "attack"
+    post_attack_metrics = "post_attack_metrics"
+    extract = "extract"
+    post_extract_metrics = "post_extract_metrics"
+    aggregate = "aggregate"
+    post_pipeline_embed_metrics = "post_pipeline_embed_metrics"
+    post_pipeline_attack_metrics = "post_pipeline_attack_metrics"
+    post_pipeline_aggregate = "post_pipeline_aggregate"
+
+
+@dataclass
+class Params:
+    """Base configuration parameters for modules.
+    
+    Attributes
+    ----------
+    device : str
+        Computation device ('cpu', 'cuda', any torch suitable device)
+        Default is 'cpu'
+    """
+    module_path: Optional[Union[str, Path]] = None
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+class PandasAggregatorConfig(BaseModel):
+    """Configuration for CSV-based metrics aggregation using pandas.
+    
+    Attributes
+    ----------
+    kind : Literal["CSV"]
+    table_name : str
+        Base name for metrics table CSV files (will generate {table_name}.csv)
+    params_table_name: str
+        Base name for params table CSV files (will generate {params_table_name}.csv)
+    post_pipeline_table_name: str
+        Name for post pipeline metrics table CSV files (will generate {post_pipeline_table_name}.csv)
+    """
+    kind: Literal["CSV"]
+    table_name: str = "metrics_table"
+    params_table_name: str = "params_table"
+    post_pipeline_table_name: str = "post_pipeline_metrics_table"
+
+
+class ClickHouseAggregatorConfig(BaseModel):
+    """Configuration for ClickHouse database metrics aggregation.
+    
+    Attributes
+    ----------
+    kind : Literal["ClickHouse"]
+    db_config : Path
+        Path to ClickHouse database configuration file
+    """
+    kind: Literal["ClickHouse"]
+    db_config: Path
+
+
+AggregatorConfig = Annotated[
+    Union[PandasAggregatorConfig, ClickHouseAggregatorConfig], Field(discriminator="kind"),
+]
+"""Type alias for supported aggregator configurations."""
+
+
+class PipeLineConfig(BaseModel):
+    """Main configuration model for the watermarking pipeline.
+    
+    Attributes
+    ----------
+    result_path : Path
+        Directory path for storing all pipeline outputs
+    aggregators : List[AggregatorConfig]
+        List of aggregator configurations to use
+    min_batch_size : int
+        Minimum number of records before flushing to aggregators
+        Default is 100
+    seed : Optional[int]
+        Random seed for reproducibility
+        Default is None (no seeding)
+    dump_type : DumpType
+        Format for saving intermediate contexts
+        Default is DumpType.serialized
+    workers : int
+        Number of parallel worker processes
+        Default is 1 (sequential processing)
+    cuda_visible_devices : list[int]
+        List of GPU device IDs to use. If workers > 1, each worker will use one of visible cuda devices (distributed evenly)
+        Default is empty list (all devices are visible for all subprocesses)
+    """
+
+    result_path: Path
+    aggregators: List[AggregatorConfig]
+    min_batch_size: int = 100
+    seed: Optional[int] = None
+    dump_type: DumpType = DumpType.serialized
+    workers: int = 1
+    cuda_visible_devices: List[int] = Field(default_factory=list)
+    logging_level: Literal["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _unpack_yaml_style(cls, data: dict):
+        for aggregator in ["aggregators", "post_aggregators"]:
+            fixed = []
+            for raw in data.get(aggregator, []):
+                if not isinstance(raw, dict) or len(raw) != 1:
+                    raise ValueError("Every element in aggregators must be a dict")
+                kind, params = next(iter(raw.items()))
+                fixed.append({"kind": kind, **params})
+            data[aggregator] = fixed
+        if "cuda_visible_devices" in data:
+            value = data["cuda_visible_devices"]
+            if isinstance(value, str):
+                numbers = [int(x.strip()) for x in value.split(',')]
+                data["cuda_visible_devices"] = numbers
+            elif isinstance(value, int):
+                data["cuda_visible_devices"] = [value]
+        return data

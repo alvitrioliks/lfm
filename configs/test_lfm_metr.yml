@@ -1,0 +1,108 @@
+algorithms:
+#   - gaussian_shading:
+#       params:
+#         device: "cuda:2"
+  # - treering:
+  #     params:
+  #       device: "cuda:2"
+  - metr:
+      params:
+  #       device: "cuda:2"
+  # - maxsive:
+  #    params:
+  #      device: "cuda:2"
+  # - ringid: 
+  #     params:
+  #       device: "cuda:2"
+  # - stable_signature: # base env
+  #     params:
+  #       device: "cuda:2"
+
+
+
+post_extract_metrics:
+  # - ExtWm
+  - BER  
+  - TPR@xFPR:
+      report_name: tpr@10e-1fpr
+      fpr_rate: 0.1
+  - TPR@xFPR:
+      report_name: tpr@10e-2fpr
+      fpr_rate: 0.01
+  - TPR@xFPR:
+      report_name: tpr@10e-3fpr
+      fpr_rate: 0.001
+
+
+# post_extract_metrics:
+#  - Result:
+#     report_name: tpr@10e-2fpr
+
+post_embed_metrics:
+  # - PSNR
+  - CLIP_IQA
+  # - Aesthetic
+  # - ImageReward
+  # - CLIPScore
+  # - BLIP
+post_attack_metrics:
+  - PSNR
+  - SSIM
+  - LPIPS
+  - CLIP_IQA
+
+datasets:
+  - DiffusionDB:
+      cache_dir: ./datasets/diffusiondb
+      subset: 2m_first_5k
+      skip_nsfw: true
+      return_prompt: true
+      sample_range: [0, 999]
+  - MSCOCO:
+      cache_dir: ./datasets/mscoco
+      split: val
+      return_prompt: true
+      sample_range: [0, 1]   # Test with 10 images: 0, ..., 9
+
+attacks:
+  - latentfrequencymasking:
+      report_name: latentfrequencymasking_00
+      beta: 0.0
+      mask_mode: rand
+      mask_channel: 3
+      device: "cuda:2"
+      cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+  - latentfrequencymasking:
+      report_name: latentfrequencymasking_02
+      beta: 0.2
+      mask_mode: rand
+      mask_channel: 3
+      device: "cuda:2"
+      cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+  - latentfrequencymasking:
+      report_name: latentfrequencymasking_04
+      beta: 0.4
+      mask_mode: rand
+      mask_channel: 3
+      device: "cuda:2"
+      cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+  - latentfrequencymasking:
+      report_name: latentfrequencymasking_06
+      beta: 0.6
+      mask_mode: rand
+      mask_channel: 3
+      device: "cuda:2"
+      cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+  - latentfrequencymasking:
+      report_name: latentfrequencymasking_08
+      beta: 0.8
+      mask_mode: rand
+      mask_channel: 3
+      device: "cuda:2"
+      cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+
+pipeline:
+  result_path: ./test_results/test_metr
+  aggregators:
+    - CSV:
+        table_name: table

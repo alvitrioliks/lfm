@@ -1,0 +1,249 @@
+[project]
+name = "lfm"
+version = "0.3.0"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "uv",
+    "typer",
+    "numpy>=1.24.4",
+    "scikit-image>=0.21.0",
+    "scipy",
+    "tqdm",
+    "torch<2.11",
+    "pandas>=2.0.0,<3.0.0",
+    "jinja2",
+    "PyYaml",
+    "pydantic",
+    "opencv-python",
+    "torchvision",
+    "loguru",
+    "huggingface_hub",
+    "json2clickhouse @ git+https://gitlab.ispras.ru/opentools/jsons2clickhouse",
+    "plotly",
+]
+
+[project.optional-dependencies]
+base = [
+    "matplotlib",
+    "seaborn",
+    "jupyter",
+    "peft>=0.17.0", # needed for a lot of algorithms but not in the requirements for some reason
+    "diffusers==0.35.0", # TODO treering does not work with 0.37, cannot import https://huggingface.co/docs/transformers/model_doc/dinov2_with_registers
+    # algorithms/cin
+    "kornia",
+    "colormath",
+    "pyyaml",
+    "importlib-metadata",
+    # algorithms/dwsf
+    "crc8",
+    "torchsummary",
+    # algorithms/dwt_svm
+    "PyWavelets",
+    "scikit-learn",
+    # algorithms/fin
+    "natsort",
+    # algorithms/gaussian_shading/
+    "pycryptodome",
+    # algorithms/hidden
+    "onnxruntime<1.24.0",  # cannot install 1.24 for python 3.10
+    # algorithms/invisible_watermark
+    "invisible-watermark",
+    # algorithms/invismark
+    "bchlib",
+    "focal_frequency_loss",
+    "tensorboard",
+    # algorithms/maskwm
+    "accelerate",
+    "compressai",
+    # algorithms/ssl_watermarking
+    "augly>=0.2.1",
+    "timm>=0.5.4",
+    # algorithms/stable_signature
+    "omegaconf",
+    # "diffusers>=0.34.0",
+    "huggingface-hub>=0.33.4",
+    "pytorch-lightning",
+    "open-clip-torch",
+    "transformers==4.46.3",  # TODO can we relax this?
+    # "xformers",  # not in requirements.txt, does not work
+    # algorithms/syncseal
+    "einops",
+    "lpips",
+    "pytorch_msssim",
+    "pycocotools",
+    "loguru",
+    # algorithms/trustmark
+    "trustmark",
+    # algorithms/videoseal
+    "av",
+    # attacks/blur_deblur
+    "pretrainedmodels",
+    # attacks/bm3d
+    "bm3d",
+    # attacks/flux_regeneration
+    # "diffusers", # TODO do we need a specific version?
+    # "transformers",
+    # "accelerate",
+    "protobuf",
+    "sentencepiece",
+    # attacks/image_editing
+    # "diffusers>=0.35.0",
+    # attacks/SADRE
+    # "transformers",  #== 4.37.2 (todo: debug)
+    # attacks/SemanticImprintRemoval
+    "cryptography",
+    "beautifulsoup4",
+    "ftfy",
+    "torchutils",
+    # datasets/diffusiondb
+    "datasets<=3.6.0",
+    "Pillow >= 9.4.0",
+    "aiohttp",
+    # metrics/aesthetic
+    "image-reward>=1.5",
+    "clip",
+    # metrics/clip_iqa
+    "torchmetrics[multimodal]",
+    # metrics/dreamsim
+    "dreamsim",
+    # metrics/fid
+    "torchmetrics[image]",
+]
+extra = [
+    "matplotlib",
+    "seaborn",
+    "jupyter",
+
+    "kornia",
+    "timm>=0.5.4",
+    "lpips",
+    "accelerate",
+    "torchmetrics[image, multimodal]",
+
+    # datasets/diffusiondb/extra_requirements.txt
+    "datasets<=3.6.0",
+    "Pillow >= 9.4.0",
+
+    # algorithms/gaussian_shading/extra_requirements.txt
+    "pycryptodome",
+    # "diffusers<= 0.23.1",
+    # "huggingface_hub<=0.25.2",
+    # "transformers<=4.48.3",
+
+    # algorithms/maxsive/extra_requirements.txt
+    # "diffusers <= 0.21.4",
+    # "huggingface_hub<=0.25.2",
+    # "transformers<= 4.48.3",
+
+    # algorithms/ringid/extra_requirements.txt
+    # "diffusers <= 0.23.1",
+    # "huggingface_hub<=0.25.2",
+    # "transformers<= 4.48.3",
+
+    # algorithms/treering/extra_requirements.txt
+    # "diffusers <= 0.23.1",
+    # "huggingface_hub<=0.25.2",
+    # "transformers<= 4.48.3",
+
+    # algorithms/metr/extra_requirements.txt
+    "ftfy",
+    "transformers==4.31.0",
+    "diffusers==0.14.0",
+    "omegaconf",
+    "huggingface_hub<=0.25.2",
+    "metr",
+    "compressai",
+]
+
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-forked",
+    "flake8",
+    "flake8-commas",
+    "flake8-continuation",
+    "pep8-naming",
+    "flake8-expression-complexity",
+    "flake8-quotes",
+    "black",
+    "mypy",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+wibench = "wibench.cli:app"
+
+[tool.uv]
+package = true
+conflicts = [
+    [
+      { extra = "base" },
+      { extra = "extra" },
+    ],
+]
+
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu118"}
+torchvision = { index = "pytorch-cu118"}
+xformers = { index = "pytorch-cu118"}
+metr = { git = "https://github.com/deepvk/metr" }
+clip = { git = "https://github.com/openai/CLIP.git" }
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
+
+[tool.uv.extra-build-dependencies]
+image-reward = ["setuptools<82"]
+
+[tool.black]
+line-length = 79
+
+[tool.flake8]
+inline-quotes = "double"
+ignore = ["E203", "W503"]
+
+[tool.mypy]
+allow_redefinition = false
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = false
+local_partial_types = true
+strict_optional = true
+strict_equality = true
+no_implicit_optional = true
+warn_no_return = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src/wibench --cov-report=term --cov-report=html --cov-append"
+
+[tool.coverage.run]
+source = ["src/wibench"]
+parallel = true
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+]
+show_missing = true
