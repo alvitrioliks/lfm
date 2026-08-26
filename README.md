@@ -16,7 +16,7 @@ This repository builds upon code from the WIBE repository  https://github.com/is
 2. Install base virtual environment:
 
     ```console
-    (.venv) uv sync
+    (.venv) uv sync --extra base
     ```
 3. Login into Huggingface to download datasets and weights
 
@@ -28,8 +28,8 @@ Set the **HF_TOKEN** environment variable with your **HuggingFace** [token](http
 
 4. Launch the script
 
-Specify the path to your `сonfiguration file` as a required parameter:
+Specify the path to `сonfiguration file` as a required parameter:
 
 ```console
-(.venv) wibench --config configs/configs/test_lfm_metr.yml.yml
+(.venv) wibench --config configs/test_lfm_metr.yml
 ```

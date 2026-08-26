@@ -1,24 +1,13 @@
 algorithms:
   - gaussian_shading:
       params:
-        device: "cuda:2"
+        device: "cuda:0"
   - treering:
       params:
-        device: "cuda:2"
-  # - metr:
-  #     params:
-  # #       device: "cuda:2"
-  # - maxsive:
-  #    params:
-  #      device: "cuda:2"
-  # - ringid: 
-  #     params:
-  #       device: "cuda:2"
-  - stable_signature: # base env
+        device: "cuda:0"
+  - stable_signature:
       params:
-        device: "cuda:2"
-
-
+        device: "cuda:0"
 
 post_extract_metrics:
   # - ExtWm
@@ -32,11 +21,6 @@ post_extract_metrics:
   - TPR@xFPR:
       report_name: tpr@10e-3fpr
       fpr_rate: 0.001
-
-
-# post_extract_metrics:
-#  - Result:
-#     report_name: tpr@10e-2fpr
 
 post_embed_metrics:
   # - PSNR
@@ -62,7 +46,7 @@ datasets:
       cache_dir: ./datasets/mscoco
       split: val
       return_prompt: true
-      sample_range: [0, 999]   # Test with 10 images: 0, ..., 9
+      sample_range: [0, 999]
 
 attacks:
   - latentfrequencymasking:
@@ -70,39 +54,34 @@ attacks:
       beta: 0.0
       mask_mode: rand
       mask_channel: 0
-      device: "cuda:2"
-      # cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+      device: "cuda:0"
   - latentfrequencymasking:
       report_name: latentfrequencymasking_02
       beta: 0.2
       mask_mode: rand
       mask_channel: 0
-      device: "cuda:2"
-      # cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+      device: "cuda:0"
   - latentfrequencymasking:
       report_name: latentfrequencymasking_04
       beta: 0.4
       mask_mode: rand
       mask_channel: 0
-      device: "cuda:2"
-      # cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+      device: "cuda:0"
   - latentfrequencymasking:
       report_name: latentfrequencymasking_06
       beta: 0.6
       mask_mode: rand
       mask_channel: 0
-      device: "cuda:2"
-      # cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+      device: "cuda:0"
   - latentfrequencymasking:
       report_name: latentfrequencymasking_08
       beta: 0.8
       mask_mode: rand
       mask_channel: 0
-      device: "cuda:2"
-      # cache_dir: "/mnt/hdd1/kir_aistov/.cache/huggingface/hub"
+      device: "cuda:0"
 
 pipeline:
-  result_path: ./test_results/18_05_26_test_lfm_treering_stable_signature_gaussian_shading_mscoco
+  result_path: ./test_results/test_lfm_treering_stable_signature_gaussian_shading
   aggregators:
     - CSV:
         table_name: table
