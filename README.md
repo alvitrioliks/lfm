@@ -1,3 +1,5 @@
+[![arXiv](https://img.shields.io/badge/arXiv-2610.02010-b31b1b.svg)](https://arxiv.org/abs/2610.02010)
+
 # Latent Frequency Masking Attack
 
 Official implementation of "Exploring Weaknesses of Generative Image Watermarks against Latent Frequency Masking"
