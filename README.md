@@ -35,3 +35,16 @@ Specify the path to `сonfiguration file` as a required parameter:
 ```console
 (.venv) wibench --config configs/test_lfm_metr.yml
 ```
+
+## Citation
+```
+@misc{aistov2026exploringweaknessesgenerativeimage,
+      title={Exploring Weaknesses of Generative Image Watermarks against Latent Frequency Masking}, 
+      author={Kirill Aistov and Khaled Abud and Irina Serzhenko and Egor Kovalev and Aleksey Yakushev and Aleksandr Akimenkov and Dmitry Obydenkov and Yury Markin and Sergey Lavrushkin and Dmitriy Vatolin and Anastasia Antsiferova},
+      year={2026},
+      eprint={2610.02010},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2610.02010}, 
+}
+```
